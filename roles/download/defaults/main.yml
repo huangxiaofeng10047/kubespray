@@ -38,7 +38,7 @@ download_localhost: false
 download_always_pull: false
 
 # Some problems may occur when downloading files over https proxy due to ansible bug
-# https://github.com/ansible/ansible/issues/32750. Set this variable to False to disable
+# http://10.0.37.153:60000/files/ansible/ansible/issues/32750. Set this variable to False to disable
 # SSL validation of get_url module. Note that kubespray will still be performing checksum validation.
 download_validate_certs: true
 
@@ -48,8 +48,8 @@ download_delegate: "{% if download_localhost %}localhost{% else %}{{ groups['kub
 # The docker_image_info_command might seems weird but we are using raw/endraw and `{{ `{{` }}` to manage the double jinja2 processing
 docker_image_pull_command: "{{ docker_bin_dir }}/docker pull"
 docker_image_info_command: "{{ docker_bin_dir }}/docker images -q | xargs -i {{ '{{' }} docker_bin_dir }}/docker inspect -f {% raw %}'{{ '{{' }} if .RepoTags }}{{ '{{' }} join .RepoTags \",\" }}{{ '{{' }} end }}{{ '{{' }} if .RepoDigests }},{{ '{{' }} join .RepoDigests \",\" }}{{ '{{' }} end }}' {% endraw %} {} | tr '\n' ','"
-nerdctl_image_info_command: "{{ bin_dir }}/nerdctl -n k8s.io images --format '{% raw %}{{ .Repository }}:{{ .Tag }}{% endraw %}' 2>/dev/null | grep -v ^:$ | tr '\n' ','"
-nerdctl_image_pull_command: "{{ bin_dir }}/nerdctl -n k8s.io pull --quiet {{ nerdctl_extra_flags }}"
+nerdctl_image_info_command: "{{ bin_dir }}/nerdctl -n k8s.io  --insecure-registry  -n k8s.io images --format '{% raw %}{{ .Repository }}:{{ .Tag }}{% endraw %}' 2>/dev/null | grep -v ^:$ | tr '\n' ','"
+nerdctl_image_pull_command: "{{ bin_dir }}/nerdctl -n k8s.io  --insecure-registry  -n k8s.io pull --quiet {{ nerdctl_extra_flags }}"
 crictl_image_info_command: "{{ bin_dir }}/crictl images --verbose | awk -F ': ' '/RepoTags|RepoDigests/ {print $2}' | tr '\n' ','"
 crictl_image_pull_command: "{{ bin_dir }}/crictl pull"
 
@@ -81,17 +81,17 @@ cri_dockerd_version: 0.2.2
 docker_containerd_version: 1.6.4
 
 # gcr and kubernetes image repo define
-gcr_image_repo: "gcr.io"
-kube_image_repo: "registry.k8s.io"
+gcr_image_repo: "10.0.37.153:5000"
+kube_image_repo: "10.0.37.153:5000"
 
 # docker image repo define
-docker_image_repo: "docker.io"
+docker_image_repo: "10.0.37.153:5000"
 
 # quay image repo define
-quay_image_repo: "quay.io"
+quay_image_repo: "10.0.37.153:5000"
 
 # github image repo define (ex multus only use that)
-github_image_repo: "ghcr.io"
+github_image_repo: "10.0.37.153:5000"
 
 # TODO(mattymo): Move calico versions to roles/network_plugins/calico/defaults
 # after migration to container download
@@ -135,27 +135,27 @@ crictl_supported_versions:
 crictl_version: "{{ crictl_supported_versions[kube_major_version] }}"
 
 # Download URLs
-kubelet_download_url: "https://storage.googleapis.com/kubernetes-release/release/{{ kube_version }}/bin/linux/{{ image_arch }}/kubelet"
-kubectl_download_url: "https://storage.googleapis.com/kubernetes-release/release/{{ kube_version }}/bin/linux/{{ image_arch }}/kubectl"
-kubeadm_download_url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubeadm_version }}/bin/linux/{{ image_arch }}/kubeadm"
-etcd_download_url: "https://github.com/etcd-io/etcd/releases/download/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-{{ image_arch }}.tar.gz"
-cni_download_url: "https://github.com/containernetworking/plugins/releases/download/{{ cni_version }}/cni-plugins-linux-{{ image_arch }}-{{ cni_version }}.tgz"
-calicoctl_download_url: "https://github.com/projectcalico/calico/releases/download/{{ calico_ctl_version }}/calicoctl-linux-{{ image_arch }}"
-calicoctl_alternate_download_url: "https://github.com/projectcalico/calicoctl/releases/download/{{ calico_ctl_version }}/calicoctl-linux-{{ image_arch }}"
-calico_crds_download_url: "https://github.com/projectcalico/calico/archive/{{ calico_version }}.tar.gz"
-crictl_download_url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ crictl_version }}/crictl-{{ crictl_version }}-{{ ansible_system | lower }}-{{ image_arch }}.tar.gz"
-helm_download_url: "https://get.helm.sh/helm-{{ helm_version }}-linux-{{ image_arch }}.tar.gz"
-runc_download_url: "https://github.com/opencontainers/runc/releases/download/{{ runc_version }}/runc.{{ image_arch }}"
-crun_download_url: "https://github.com/containers/crun/releases/download/{{ crun_version }}/crun-{{ crun_version }}-linux-{{ image_arch }}"
-youki_download_url: "https://github.com/containers/youki/releases/download/v{{ youki_version }}/youki_v{{ youki_version | regex_replace('\\.', '_') }}_linux.tar.gz"
-kata_containers_download_url: "https://github.com/kata-containers/kata-containers/releases/download/{{ kata_containers_version }}/kata-static-{{ kata_containers_version }}-{{ ansible_architecture }}.tar.xz"
+kubelet_download_url: "http://10.0.37.153:60000/files/storage.googleapis.com/kubernetes-release/release/{{ kube_version }}/bin/linux/{{ image_arch }}/kubelet"
+kubectl_download_url: "http://10.0.37.153:60000/files/storage.googleapis.com/kubernetes-release/release/{{ kube_version }}/bin/linux/{{ image_arch }}/kubectl"
+kubeadm_download_url: "http://10.0.37.153:60000/files/storage.googleapis.com/kubernetes-release/release/{{ kubeadm_version }}/bin/linux/{{ image_arch }}/kubeadm"
+etcd_download_url: "http://10.0.37.153:60000/files/github.com/etcd-io/etcd/releases/download/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-{{ image_arch }}.tar.gz"
+cni_download_url: "http://10.0.37.153:60000/files/github.com/containernetworking/plugins/releases/download/{{ cni_version }}/cni-plugins-linux-{{ image_arch }}-{{ cni_version }}.tgz"
+calicoctl_download_url: "http://10.0.37.153:60000/files/github.com/projectcalico/calico/releases/download/{{ calico_ctl_version }}/calicoctl-linux-{{ image_arch }}"
+calicoctl_alternate_download_url: "http://10.0.37.153:60000/files/github.com/projectcalico/calicoctl/releases/download/{{ calico_ctl_version }}/calicoctl-linux-{{ image_arch }}"
+calico_crds_download_url: "http://10.0.37.153:60000/files/github.com/projectcalico/calico/archive/{{ calico_version }}.tar.gz"
+crictl_download_url: "http://10.0.37.153:60000/files/github.com/kubernetes-sigs/cri-tools/releases/download/{{ crictl_version }}/crictl-{{ crictl_version }}-{{ ansible_system | lower }}-{{ image_arch }}.tar.gz"
+helm_download_url: "http://10.0.37.153:60000/files/get.helm.sh/helm-{{ helm_version }}-linux-{{ image_arch }}.tar.gz"
+runc_download_url: "http://10.0.37.153:60000/files/github.com/opencontainers/runc/releases/download/{{ runc_version }}/runc.{{ image_arch }}"
+crun_download_url: "http://10.0.37.153:60000/files/github.com/containers/crun/releases/download/{{ crun_version }}/crun-{{ crun_version }}-linux-{{ image_arch }}"
+youki_download_url: "http://10.0.37.153:60000/files/github.com/containers/youki/releases/download/v{{ youki_version }}/youki_v{{ youki_version | regex_replace('\\.', '_') }}_linux.tar.gz"
+kata_containers_download_url: "http://10.0.37.153:60000/files/github.com/kata-containers/kata-containers/releases/download/{{ kata_containers_version }}/kata-static-{{ kata_containers_version }}-{{ ansible_architecture }}.tar.xz"
 # gVisor only supports amd64 and uses x86_64 to in the download link
-gvisor_runsc_download_url: "https://storage.googleapis.com/gvisor/releases/release/{{ gvisor_version }}/{{ ansible_architecture }}/runsc"
-gvisor_containerd_shim_runsc_download_url: "https://storage.googleapis.com/gvisor/releases/release/{{ gvisor_version }}/{{ ansible_architecture }}/containerd-shim-runsc-v1"
-nerdctl_download_url: "https://github.com/containerd/nerdctl/releases/download/v{{ nerdctl_version }}/nerdctl-{{ nerdctl_version }}-{{ ansible_system | lower }}-{{ image_arch }}.tar.gz"
-krew_download_url: "https://github.com/kubernetes-sigs/krew/releases/download/{{ krew_version }}/krew-{{ host_os }}_{{ image_arch }}.tar.gz"
-containerd_download_url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-{{ image_arch }}.tar.gz"
-cri_dockerd_download_url: "https://github.com/Mirantis/cri-dockerd/releases/download/v{{ cri_dockerd_version }}/cri-dockerd-{{ cri_dockerd_version }}.{{ image_arch }}.tgz"
+gvisor_runsc_download_url: "http://10.0.37.153:60000/files/storage.googleapis.com/gvisor/releases/release/{{ gvisor_version }}/{{ ansible_architecture }}/runsc"
+gvisor_containerd_shim_runsc_download_url: "http://10.0.37.153:60000/files/storage.googleapis.com/gvisor/releases/release/{{ gvisor_version }}/{{ ansible_architecture }}/containerd-shim-runsc-v1"
+nerdctl_download_url: "http://10.0.37.153:60000/files/github.com/containerd/nerdctl/releases/download/v{{ nerdctl_version }}/nerdctl-{{ nerdctl_version }}-{{ ansible_system | lower }}-{{ image_arch }}.tar.gz"
+krew_download_url: "http://10.0.37.153:60000/files/github.com/kubernetes-sigs/krew/releases/download/{{ krew_version }}/krew-{{ host_os }}_{{ image_arch }}.tar.gz"
+containerd_download_url: "http://10.0.37.153:60000/files/github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-{{ image_arch }}.tar.gz"
+cri_dockerd_download_url: "http://10.0.37.153:60000/files/github.com/Mirantis/cri-dockerd/releases/download/v{{ cri_dockerd_version }}/cri-dockerd-{{ cri_dockerd_version }}.{{ image_arch }}.tgz"
 
 crictl_checksums:
   arm:

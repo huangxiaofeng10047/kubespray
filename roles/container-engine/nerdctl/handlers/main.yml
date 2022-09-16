@@ -1,6 +1,6 @@
 ---
 - name: Get nerdctl completion
-  command: "{{ bin_dir }}/nerdctl completion bash"
+  command: "{{ bin_dir }}/nerdctl -n k8s.io  --insecure-registry  completion bash"
   changed_when: False
   register: nerdctl_completion
   check_mode: false
