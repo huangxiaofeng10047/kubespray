@@ -11,7 +11,8 @@ contrib/offline/offline-files.tar.gz
 .cache
 *.bak
 *.tfstate
-*.tfstate.backup
+*.tfstate*backup
+*.lock.hcl
 .terraform/
 contrib/terraform/aws/credentials.tfvars
 .terraform.lock.hcl
@@ -113,3 +114,7 @@ roles/**/molecule/**/__pycache__/
 # Temp location used by our scripts
 scripts/tmp/
 tmp.md
+
+# Ansible collection files
+kubernetes_sigs-kubespray*tar.gz
+ansible_collections

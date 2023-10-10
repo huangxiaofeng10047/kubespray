@@ -28,6 +28,7 @@ Some variables of note include:
 * *kube_proxy_mode* - Changes k8s proxy mode to iptables mode
 * *kube_version* - Specify a given Kubernetes version
 * *searchdomains* - Array of DNS domains to search when looking up hostnames
+* *remove_default_searchdomains* - Boolean that removes the default searchdomain
 * *nameservers* - Array of nameservers to use for DNS lookup
 * *preinstall_selinux_state* - Set selinux state, permitted values are permissive, enforcing and disabled.
 
@@ -80,7 +81,7 @@ following default cluster parameters:
   bits in kube_pods_subnet dictates how many kube_nodes can be in cluster. Setting this > 25 will
   raise an assertion in playbooks if the `kubelet_max_pods` var also isn't adjusted accordingly
   (assertion not applicable to calico which doesn't use this as a hard limit, see
-  [Calico IP block sizes](https://docs.projectcalico.org/reference/resources/ippool#block-sizes).
+  [Calico IP block sizes](https://docs.projectcalico.org/reference/resources/ippool#block-sizes)).
 
 * *enable_dual_stack_networks* - Setting this to true will provision both IPv4 and IPv6 networking for pods and services.
 
@@ -119,7 +120,7 @@ following default cluster parameters:
   alpha/experimental Kubeadm features. (defaults is `[]`)
 
 * *authorization_modes* - A list of [authorization mode](
-  https://kubernetes.io/docs/admin/authorization/#using-flags-for-your-authorization-module)
+  https://kubernetes.io/docs/reference/access-authn-authz/authorization/#using-flags-for-your-authorization-module)
   that the cluster should be configured for. Defaults to `['Node', 'RBAC']`
   (Node and RBAC authorizers).
   Note: `Node` and `RBAC` are enabled by default. Previously deployed clusters can be
@@ -166,7 +167,9 @@ variables to match your requirements.
   addition to Kubespray deployed DNS
 * *nameservers* - Array of DNS servers configured for use by hosts
 * *searchdomains* - Array of up to 4 search domains
+* *remove_default_searchdomains* - Boolean. If enabled, `searchdomains` variable can hold 6 search domains.
 * *dns_etchosts* - Content of hosts file for coredns and nodelocaldns
+* *dns_upstream_forward_extra_opts* - Options to add in the forward section of coredns/nodelocaldns related to upstream DNS servers
 
 For more information, see [DNS
 Stack](https://github.com/kubernetes-sigs/kubespray/blob/master/docs/dns-stack.md).
@@ -181,12 +184,12 @@ Stack](https://github.com/kubernetes-sigs/kubespray/blob/master/docs/dns-stack.m
 * *containerd_default_runtime* - If defined, changes the default Containerd runtime used by the Kubernetes CRI plugin.
 
 * *containerd_additional_runtimes* - Sets the additional Containerd runtimes used by the Kubernetes CRI plugin.
-  [Default config](https://github.com/kubernetes-sigs/kubespray/blob/master/roles/container-engine/containerd/defaults/main.yml) can be overriden in inventory vars.
+  [Default config](https://github.com/kubernetes-sigs/kubespray/blob/master/roles/container-engine/containerd/defaults/main.yml) can be overridden in inventory vars.
 
 * *http_proxy/https_proxy/no_proxy/no_proxy_exclude_workers/additional_no_proxy* - Proxy variables for deploying behind a
   proxy. Note that no_proxy defaults to all internal cluster IPs and hostnames
   that correspond to each node.
-  
+
 * *kubelet_cgroup_driver* - Allows manual override of the cgroup-driver option for Kubelet.
   By default autodetection is used to match container manager configuration.
   `systemd` is the preferred driver for `containerd` though it can have issues with `cgroups v1` and `kata-containers` in which case you may want to change to `cgroupfs`.
@@ -196,26 +199,41 @@ Stack](https://github.com/kubernetes-sigs/kubespray/blob/master/docs/dns-stack.m
 
 * *kubelet_rotate_server_certificates* - Auto rotate the kubelet server certificates by requesting new certificates
   from the kube-apiserver when the certificate expiration approaches.
-  **Note** that server certificates are **not** approved automatically. Approve them manually
-  (`kubectl get csr`, `kubectl certificate approve`) or implement custom approving controller like
-  [kubelet-rubber-stamp](https://github.com/kontena/kubelet-rubber-stamp).
+  Note that enabling this also activates *kubelet_csr_approver* which approves automatically the CSRs.
+  To customize its behavior, you can override the Helm values via *kubelet_csr_approver_values*.
+  See [kubelet-csr-approver](https://github.com/postfinance/kubelet-csr-approver) for more information.
 
 * *kubelet_streaming_connection_idle_timeout* - Set the maximum time a streaming connection can be idle before the connection is automatically closed.
 
+* *kubelet_image_gc_high_threshold* - Set the percent of disk usage after which image garbage collection is always run.
+  The percent is calculated by dividing this field value by 100, so this field must be between 0 and 100, inclusive.
+  When specified, the value must be greater than imageGCLowThresholdPercent. Default: 85
+
+* *kubelet_image_gc_low_threshold* - Set the percent of disk usage before which image garbage collection is never run.
+  Lowest disk usage to garbage collect to.
+  The percent is calculated by dividing this field value by 100, so the field value must be between 0 and 100, inclusive.
+  When specified, the value must be less than imageGCHighThresholdPercent. Default: 80
+
 * *kubelet_make_iptables_util_chains* - If `true`, causes the kubelet ensures a set of `iptables` rules are present on host.
+
+* *kubelet_cpu_manager_policy* -  If set to `static`, allows pods with certain resource characteristics to be granted increased CPU affinity and exclusivity on the node. And it should be set with `kube_reserved` or `system-reserved`, enable this with the following guide:[Control CPU Management Policies on the Node](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/)
+
+* *kubelet_topology_manager_policy* - Control the behavior of the allocation of CPU and Memory from different [NUMA](https://en.wikipedia.org/wiki/Non-uniform_memory_access) Nodes. Enable this with the following guide: [Control Topology Management Policies on a node](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager).
+
+* *kubelet_topology_manager_scope* - The Topology Manager can deal with the alignment of resources in a couple of distinct scopes: `container` and `pod`. See [Topology Manager Scopes](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-scopes).
 
 * *kubelet_systemd_hardening* - If `true`, provides kubelet systemd service with security features for isolation.
 
-  **N.B.** To enable this feature, ensure you are using the **`cgroup v2`** on your system. Check it out with command: `sudo ls -l /sys/fs/cgroup/*.slice`. If directory does not exists, enable this with the following guide: [enable cgroup v2](https://rootlesscontaine.rs/getting-started/common/cgroup2/#enabling-cgroup-v2).
+  **N.B.** To enable this feature, ensure you are using the **`cgroup v2`** on your system. Check it out with command: `sudo ls -l /sys/fs/cgroup/*.slice`. If directory does not exist, enable this with the following guide: [enable cgroup v2](https://rootlesscontaine.rs/getting-started/common/cgroup2/#enabling-cgroup-v2).
 
   * *kubelet_secure_addresses* - By default *kubelet_systemd_hardening* set the **control plane** `ansible_host` IPs as the `kubelet_secure_addresses`. In case you have multiple interfaces in your control plane nodes and the `kube-apiserver` is not bound to the default interface, you can override them with this variable.
     Example:
-  
+
     The **control plane** node may have 2 interfaces with the following IP addresses: `eth0:10.0.0.110`, `eth1:192.168.1.110`.
-  
+
     By default the `kubelet_secure_addresses` is set with the `10.0.0.110` the ansible control host uses `eth0` to  connect to the machine. In case you want to use `eth1` as the outgoing interface on which `kube-apiserver` connects to the `kubelet`s, you should override the variable in this way: `kubelet_secure_addresses: "192.168.1.110"`.
 
-* *node_labels* - Labels applied to nodes via kubelet --node-labels parameter.
+* *node_labels* - Labels applied to nodes via `kubectl label node`.
   For example, labels can be set in the inventory as variables or more widely in group_vars.
   *node_labels* can only be defined as a dict:
 
@@ -240,7 +258,7 @@ node_taints:
   The auditing parameters can be tuned via the following variables (which default values are shown below):
   * `audit_log_path`: /var/log/audit/kube-apiserver-audit.log
   * `audit_log_maxage`: 30
-  * `audit_log_maxbackups`: 1
+  * `audit_log_maxbackups`: 10
   * `audit_log_maxsize`: 100
   * `audit_policy_file`: "{{ kube_config_dir }}/audit-policy/apiserver-audit-policy.yaml"
 

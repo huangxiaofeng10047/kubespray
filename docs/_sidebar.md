@@ -13,6 +13,7 @@
 * CNI
   * [Calico](docs/calico.md)
   * [Flannel](docs/flannel.md)
+  * [Cilium](docs/cilium.md)
   * [Kube Router](docs/kube-router.md)
   * [Kube OVN](docs/kube-ovn.md)
   * [Weave](docs/weave.md)
@@ -37,6 +38,8 @@
   * [CentOS/OracleLinux/AlmaLinux/Rocky Linux](docs/centos.md)
   * [Kylin Linux Advanced Server V10](docs/kylinlinux.md)
   * [Amazon Linux 2](docs/amazonlinux.md)
+  * [UOS Linux](docs/uoslinux.md)
+  * [openEuler notes](docs/openeuler.md)
 * CRI
   * [Containerd](docs/containerd.md)
   * [Docker](docs/docker.md)

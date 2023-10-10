@@ -1,18 +1,40 @@
 ---
 # Limits for coredns
+
+# uncomment the line below to customize the DNS cpu limit value
+# dns_cpu_limit: 300m
 dns_memory_limit: 300Mi
 dns_cpu_requests: 100m
 dns_memory_requests: 70Mi
-dns_min_replicas: "{{ [ 2, groups['k8s_cluster'] | length ] | min }}"
+dns_min_replicas: "{{ [2, groups['k8s_cluster'] | length] | min }}"
 dns_nodes_per_replica: 16
 dns_cores_per_replica: 256
-dns_prevent_single_point_failure: "{{ 'true' if dns_min_replicas|int > 1 else 'false' }}"
+dns_prevent_single_point_failure: "{{ 'true' if dns_min_replicas | int > 1 else 'false' }}"
 enable_coredns_reverse_dns_lookups: true
 coredns_ordinal_suffix: ""
 # dns_extra_tolerations: [{effect: NoSchedule, operator: "Exists"}]
 coredns_deployment_nodeselector: "kubernetes.io/os: linux"
 coredns_default_zone_cache_block: |
   cache 30
+# coredns_additional_configs adds any extra configuration to coredns
+# coredns_additional_configs: |
+#   whoami
+#   local
+
+# coredns_rewrite_block: |
+#   rewrite stop {
+#     name regex (.*)\.my\.domain {1}.svc.cluster.local
+#     answer name (.*)\.svc\.cluster\.local {1}.my.domain
+#   }
+
+
+# dns_upstream_forward_extra_opts apply to coredns forward section as well as nodelocaldns upstream target forward section
+# dns_upstream_forward_extra_opts:
+#   policy: sequential
+
+# Apply extra options to coredns kubernetes plugin
+# coredns_kubernetes_extra_opts:
+#   - 'fallthrough example.local'
 
 # nodelocaldns
 nodelocaldns_cpu_requests: 100m

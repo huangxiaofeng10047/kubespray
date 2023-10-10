@@ -90,6 +90,9 @@ In all hosts, restart nginx-proxy pod. This pod is a local proxy for the apiserv
 ```sh
 # run in every host
 docker ps | grep k8s_nginx-proxy_nginx-proxy | awk '{print $1}' | xargs docker restart
+
+# or with containerd
+crictl ps | grep nginx-proxy | awk '{print $1}' | xargs crictl stop
 ```
 
 ### 3) Remove old control plane nodes
@@ -138,7 +141,7 @@ Run `cluster.yml` with `--limit=kube_control_plane`
 
 ## Adding an etcd node
 
-You need to make sure there are always an odd number of etcd nodes in the cluster. In such a way, this is always a replace or scale up operation. Either add two new nodes or remove an old one.
+You need to make sure there are always an odd number of etcd nodes in the cluster. In such a way, this is always a replacement or scale up operation. Either add two new nodes or remove an old one.
 
 ### 1) Add the new node running cluster.yml
 

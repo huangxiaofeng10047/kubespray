@@ -1,13 +1,4 @@
 ---
-- name: Set cert dir
-  set_fact:
-    calico_cert_dir: "{{ canal_cert_dir }}"
-  when:
-    - kube_network_plugin == 'canal'
-  tags:
-    - facts
-    - canal
-
 - name: Create calico-kube-controllers manifests
   template:
     src: "{{ item.file }}.j2"
@@ -33,6 +24,9 @@
     state: "latest"
   with_items:
     - "{{ calico_kube_manifests.results }}"
+  register: calico_kube_controller_start
+  until: calico_kube_controller_start is succeeded
+  retries: 4
   when:
     - inventory_hostname == groups['kube_control_plane'][0]
     - not item is skipped

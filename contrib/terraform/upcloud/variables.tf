@@ -126,7 +126,19 @@ variable "loadbalancers" {
 
   type = map(object({
     port            = number
+    target_port     = number
     backend_servers = list(string)
   }))
+  default = {}
+}
+
+variable "server_groups" {
+  description = "Server groups"
+
+  type = map(object({
+    anti_affinity_policy = string
+    servers              = list(string)
+  }))
+
   default = {}
 }

@@ -18,23 +18,21 @@ oom_score = {{ containerd_oom_score }}
   [plugins."io.containerd.grpc.v1.cri"]
     sandbox_image = "{{ pod_infra_image_repo }}:{{ pod_infra_image_tag }}"
     max_container_log_line_size = {{ containerd_max_container_log_line_size }}
+    enable_unprivileged_ports = {{ containerd_enable_unprivileged_ports | default(false) | lower }}
+    enable_unprivileged_icmp = {{ containerd_enable_unprivileged_icmp | default(false) | lower }}
     [plugins."io.containerd.grpc.v1.cri".containerd]
       default_runtime_name = "{{ containerd_default_runtime | default('runc') }}"
       snapshotter = "{{ containerd_snapshotter | default('overlayfs') }}"
       [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
-        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.{{ containerd_runc_runtime.name }}]
-          runtime_type = "{{ containerd_runc_runtime.type }}"
-          runtime_engine = "{{ containerd_runc_runtime.engine}}"
-          runtime_root = "{{ containerd_runc_runtime.root }}"
-          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.{{ containerd_runc_runtime.name }}.options]
-{% for key, value in containerd_runc_runtime.options.items() %}
-            {{ key }} = {{ value }}
-{% endfor %}
-{% for runtime in containerd_additional_runtimes %}
+{% for runtime in [containerd_runc_runtime] + containerd_additional_runtimes %}
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.{{ runtime.name }}]
           runtime_type = "{{ runtime.type }}"
           runtime_engine = "{{ runtime.engine }}"
           runtime_root = "{{ runtime.root }}"
+{% if runtime.base_runtime_spec is defined %}
+          base_runtime_spec = "{{ containerd_cfg_dir }}/{{ runtime.base_runtime_spec }}"
+{% endif %}
+
           [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.{{ runtime.name }}.options]
 {% for key, value in runtime.options.items() %}
             {{ key }} = {{ value }}
@@ -49,17 +47,21 @@ oom_score = {{ containerd_oom_score }}
           runtime_type = "io.containerd.runsc.v1"
 {% endif %}
     [plugins."io.containerd.grpc.v1.cri".registry]
+{% if containerd_use_config_path is defined and containerd_use_config_path|bool %}
+      config_path = "{{ containerd_cfg_dir }}/certs.d"
+{% else %}
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
-{% for registry, addr in containerd_registries.items() %}
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry }}"]
-          endpoint = ["{{ ([ addr ] | flatten ) | join('","') }}"]
+{% set insecure_registries_addr = [] %}
+{% for registry in containerd_registries_mirrors %}
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry.prefix }}"]
+{% set endpoint = [] %}
+{% for mirror in registry.mirrors %}
+{% if endpoint.append(mirror.host) %}{% endif %}
+{% if mirror.skip_verify is defined and mirror.skip_verify|bool %}{% if insecure_registries_addr.append(mirror.host | urlsplit('netloc')) %}{% endif %}{% endif %}
 {% endfor %}
-{% if containerd_insecure_registries is defined and containerd_insecure_registries|length>0 %}
-{% for registry, addr in containerd_insecure_registries.items() %}
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ registry }}"]
-          endpoint = ["{{ ([ addr ] | flatten ) | join('","') }}"]
+          endpoint = ["{{ ( endpoint | unique ) | join('","') }}"]
 {% endfor %}
-{% for addr in containerd_insecure_registries.values() | flatten | unique %}
+{% for addr in insecure_registries_addr | unique %}
         [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ addr }}".tls]
           insecure_skip_verify = true
 {% endfor %}
@@ -75,6 +77,11 @@ oom_score = {{ containerd_oom_score }}
 {% endif %}
 {% endif %}
 {% endfor %}
+
+{% if nri_enabled and containerd_version >= 1.7.0 %}
+  [plugins."io.containerd.nri.v1.nri"]
+    disable = false
+{% endif %}
 
 {% if containerd_extra_args is defined %}
 {{ containerd_extra_args }}

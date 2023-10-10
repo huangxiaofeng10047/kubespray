@@ -1,5 +1,5 @@
 ---
-- name: kubeadm | Check api is up
+- name: Kubeadm | Check api is up
   uri:
     url: "https://{{ ip | default(fallback_ips[inventory_hostname]) }}:{{ kube_apiserver_port }}/healthz"
     validate_certs: false
@@ -9,7 +9,7 @@
   delay: 5
   until: _result.status == 200
 
-- name: kubeadm | Upgrade first master
+- name: Kubeadm | Upgrade first master
   command: >-
     timeout -k 600s 600s
     {{ bin_dir }}/kubeadm
@@ -19,6 +19,7 @@
     --ignore-preflight-errors=all
     --allow-experimental-upgrades
     --etcd-upgrade={{ (etcd_deployment_type == "kubeadm") | bool | lower }}
+    {% if kubeadm_patches is defined and kubeadm_patches.enabled %}--patches={{ kubeadm_patches.dest_dir }}{% endif %}
     --force
   register: kubeadm_upgrade
   # Retry is because upload config sometimes fails
@@ -30,7 +31,7 @@
     PATH: "{{ bin_dir }}:{{ ansible_env.PATH }}"
   notify: Master | restart kubelet
 
-- name: kubeadm | Upgrade other masters
+- name: Kubeadm | Upgrade other masters
   command: >-
     timeout -k 600s 600s
     {{ bin_dir }}/kubeadm
@@ -40,17 +41,19 @@
     --ignore-preflight-errors=all
     --allow-experimental-upgrades
     --etcd-upgrade={{ (etcd_deployment_type == "kubeadm") | bool | lower }}
+    {% if kubeadm_patches is defined and kubeadm_patches.enabled %}--patches={{ kubeadm_patches.dest_dir }}{% endif %}
     --force
   register: kubeadm_upgrade
+  # Retry is because upload config sometimes fails
+  retries: 3
+  until: kubeadm_upgrade.rc == 0
   when: inventory_hostname != first_kube_control_plane
-  failed_when:
-    - kubeadm_upgrade.rc != 0
-    - '"field is immutable" not in kubeadm_upgrade.stderr'
+  failed_when: kubeadm_upgrade.rc != 0 and "field is immutable" not in kubeadm_upgrade.stderr
   environment:
     PATH: "{{ bin_dir }}:{{ ansible_env.PATH }}"
   notify: Master | restart kubelet
 
-- name: kubeadm | clean kubectl cache to refresh api types
+- name: Kubeadm | clean kubectl cache to refresh api types
   file:
     path: "{{ item }}"
     state: absent
@@ -59,7 +62,7 @@
     - /root/.kube/http-cache
 
 # FIXME: https://github.com/kubernetes/kubeadm/issues/1318
-- name: kubeadm | scale down coredns replicas to 0 if not using coredns dns_mode
+- name: Kubeadm | scale down coredns replicas to 0 if not using coredns dns_mode
   command: >-
     {{ kubectl }}
     -n kube-system
@@ -68,7 +71,7 @@
   retries: 6
   delay: 5
   until: scale_down_coredns is succeeded
-  run_once: yes
+  run_once: true
   when:
     - kubeadm_scale_down_coredns_enabled
     - dns_mode not in ['coredns', 'coredns_dual']

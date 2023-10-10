@@ -9,6 +9,29 @@
     - ansible_pkg_mgr == 'zypper'
   tags: bootstrap-os
 
+- name: Add debian 10 required repos
+  when:
+    - ansible_distribution == "Debian"
+    - ansible_distribution_version == "10"
+  tags:
+    - bootstrap-os
+  block:
+    - name: Add Debian Backports apt repo
+      apt_repository:
+        repo: "deb http://deb.debian.org/debian {{ ansible_distribution_release }}-backports main"
+        state: present
+        filename: debian-backports
+
+    - name: Set libseccomp2 pin priority to apt_preferences on Debian buster
+      copy:
+        content: |
+          Package: libseccomp2
+          Pin: release a={{ ansible_distribution_release }}-backports
+          Pin-Priority: 1001
+        dest: "/etc/apt/preferences.d/libseccomp2"
+        owner: "root"
+        mode: 0644
+
 - name: Update package management cache (APT)
   apt:
     update_cache: yes
@@ -33,7 +56,7 @@
   delay: "{{ retry_stagger | random + 3 }}"
   when:
     - ansible_distribution == "Fedora"
-    - ansible_distribution_major_version|int >= 30
+    - ansible_distribution_major_version | int >= 30
     - not is_fedora_coreos
   changed_when: False
   tags:
@@ -46,18 +69,18 @@
   when:
     - ansible_os_family == "RedHat"
     - not is_fedora_coreos
-    - epel_enabled|bool
+    - epel_enabled | bool
   tags:
     - bootstrap-os
 
 - name: Update common_required_pkgs with ipvsadm when kube_proxy_mode is ipvs
   set_fact:
-    common_required_pkgs: "{{ common_required_pkgs|default([]) + ['ipvsadm', 'ipset'] }}"
+    common_required_pkgs: "{{ common_required_pkgs | default([]) + ['ipvsadm', 'ipset'] }}"
   when: kube_proxy_mode == 'ipvs'
 
 - name: Install packages requirements
   package:
-    name: "{{ required_pkgs | default([]) | union(common_required_pkgs|default([])) }}"
+    name: "{{ required_pkgs | default([]) | union(common_required_pkgs | default([])) }}"
     state: present
   register: pkgs_task_result
   until: pkgs_task_result is succeeded

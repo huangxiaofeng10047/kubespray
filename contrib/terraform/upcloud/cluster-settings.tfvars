@@ -18,7 +18,7 @@ ssh_public_keys = [
 
 # check list of available plan https://developers.upcloud.com/1.3/7-plans/
 machines = {
-  "master-0" : {
+  "control-plane-0" : {
     "node_type" : "master",
     # plan to use instead of custom cpu/mem
     "plan" : null,
@@ -121,10 +121,28 @@ loadbalancer_plan    = "development"
 loadbalancers = {
   # "http" : {
   #   "port" : 80,
+  #   "target_port" : 80,
   #   "backend_servers" : [
   #     "worker-0",
   #     "worker-1",
   #     "worker-2"
   #   ]
+  # }
+}
+
+server_groups = {
+  # "control-plane" = {
+  #   servers = [
+  #     "control-plane-0"
+  #   ]
+  #   anti_affinity_policy = "strict"
+  # },
+  # "workers" = {
+  #   servers = [
+  #     "worker-0",
+  #     "worker-1",
+  #     "worker-2"
+  #   ]
+  #   anti_affinity_policy = "yes"
   # }
 }
