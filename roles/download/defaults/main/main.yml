@@ -86,17 +86,17 @@ cri_dockerd_version: 0.3.4
 docker_containerd_version: 1.6.16
 
 # gcr and kubernetes image repo define
-gcr_image_repo: "gcr.io"
-kube_image_repo: "registry.k8s.io"
+gcr_image_repo: "10.7.20.12:5000"
+kube_image_repo: "10.7.20.12:5000"
 
 # docker image repo define
-docker_image_repo: "docker.io"
+docker_image_repo: "10.7.20.12:5000"
 
 # quay image repo define
-quay_image_repo: "quay.io"
+quay_image_repo: "10.7.20.12:5000"
 
 # github image repo define (ex multus only use that)
-github_image_repo: "ghcr.io"
+github_image_repo: "10.7。20.12:5000"
 
 # TODO(mattymo): Move calico versions to roles/network_plugins/calico/defaults
 # after migration to container download
