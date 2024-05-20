@@ -225,8 +225,6 @@ spec:
       serviceAccountName: kubernetes-dashboard
 {% if dashboard_master_toleration %}
       tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
         - key: node-role.kubernetes.io/control-plane
           effect: NoSchedule
 {% endif %}
@@ -249,7 +247,7 @@ spec:
     k8s-app: kubernetes-dashboard
 
 ---
-# ------------------- Metrics Scrapper Service Account ------------------- #
+# ------------------- Metrics Scraper Service Account ------------------- #
 
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -265,7 +263,7 @@ rules:
 
 ---
 
-# ------------------- Metrics Scrapper Service  ------------------- #
+# ------------------- Metrics Scraper Service  ------------------- #
 kind: Service
 apiVersion: v1
 metadata:
@@ -282,7 +280,7 @@ spec:
 
 ---
 
-# ------------------- Metrics Scrapper Deployment  ------------------- #
+# ------------------- Metrics Scraper Deployment  ------------------- #
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -332,8 +330,6 @@ spec:
         emptyDir: {}
 {% if dashboard_master_toleration %}
       tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
         - key: node-role.kubernetes.io/control-plane
           effect: NoSchedule
 {% endif %}
