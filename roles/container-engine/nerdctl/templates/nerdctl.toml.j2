@@ -7,3 +7,4 @@ cni_path          = "/opt/cni/bin"
 cni_netconfpath   = "/etc/cni/net.d"
 cgroup_manager    = "{{ kubelet_cgroup_driver | default('systemd') }}"
 hosts_dir         = ["{{ containerd_cfg_dir }}/certs.d"]
+insecure_registry = true 
