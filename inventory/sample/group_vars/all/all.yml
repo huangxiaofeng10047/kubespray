@@ -11,19 +11,19 @@ bin_dir: /usr/local/bin
 
 
 ## External LB example config
-## apiserver_loadbalancer_domain_name: "elb.some.domain"
-# loadbalancer_apiserver:
-#   address: 1.2.3.4
-#   port: 1234
+ apiserver_loadbalancer_domain_name: "master.k8s.io"
+ loadbalancer_apiserver:
+   address: 10.7.10.196
+   port: 16443
 
 ## Internal loadbalancers for apiservers
 # loadbalancer_apiserver_localhost: true
 # valid options are "nginx" or "haproxy"
-# loadbalancer_apiserver_type: nginx  # valid values "nginx" or "haproxy"
+ loadbalancer_apiserver_type: haproxy  # valid values "nginx" or "haproxy"
 
 ## Local loadbalancer should use this port
 ## And must be set port 6443
-loadbalancer_apiserver_port: 6443
+loadbalancer_apiserver_port: 16443
 
 ## If loadbalancer_apiserver_healthcheck_port variable defined, enables proxy liveness check for nginx.
 loadbalancer_apiserver_healthcheck_port: 8081
