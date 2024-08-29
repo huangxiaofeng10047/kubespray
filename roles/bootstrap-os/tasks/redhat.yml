@@ -12,7 +12,7 @@
     value: "{{ http_proxy | default(omit) }}"
     state: "{{ http_proxy | default(False) | ternary('present', 'absent') }}"
     no_extra_spaces: true
-    mode: 0644
+    mode: "0644"
   become: true
   when: not skip_http_proxy_on_os_packages
 
@@ -87,9 +87,9 @@
 - name: Check presence of fastestmirror.conf
   stat:
     path: /etc/yum/pluginconf.d/fastestmirror.conf
-    get_attributes: no
-    get_checksum: no
-    get_mime: no
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
   register: fastestmirror
 
 # the fastestmirror plugin can actually slow down Ansible deployments

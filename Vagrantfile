@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # # vi: set ft=ruby :
 
-# For help on using kubespray with vagrant, check out docs/vagrant.md
+# For help on using kubespray with vagrant, check out docs/developers/vagrant.md
 
 require 'fileutils'
 
@@ -278,6 +278,7 @@ Vagrant.configure("2") do |config|
         "local_path_provisioner_enabled": "#{$local_path_provisioner_enabled}",
         "local_path_provisioner_claim_root": "#{$local_path_provisioner_claim_root}",
         "ansible_ssh_user": SUPPORTED_OS[$os][:user],
+        "ansible_ssh_private_key_file": File.join(Dir.home, ".vagrant.d", "insecure_private_key"),
         "unsafe_show_logs": "True"
       }
 

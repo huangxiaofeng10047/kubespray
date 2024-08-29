@@ -132,25 +132,37 @@ skopeo_version: "v1.13.2"
 # Get kubernetes major version (i.e. 1.17.4 => 1.17)
 kube_major_version: "{{ kube_version | regex_replace('^v([0-9])+\\.([0-9]+)\\.[0-9]+', 'v\\1.\\2') }}"
 
+pod_infra_supported_versions:
+  v1.29: "3.9"
+  v1.28: "3.9"
+pod_infra_version: "{{ pod_infra_supported_versions[kube_major_version] }}"
+
 etcd_supported_versions:
-  v1.28: "v3.5.9"
-  v1.27: "v3.5.9"
-  v1.26: "v3.5.9"
+  v1.29: "v3.5.12"
+  v1.28: "v3.5.12"
 etcd_version: "{{ etcd_supported_versions[kube_major_version] }}"
 
 crictl_supported_versions:
   v1.28: "v1.28.0"
-  v1.27: "v1.27.1"
-  v1.26: "v1.26.0"
 crictl_version: "{{ crictl_supported_versions[kube_major_version] }}"
 
 crio_supported_versions:
-  v1.28: v1.28.1
-  v1.27: v1.27.1
-  v1.26: v1.26.3
+  v1.29: v1.29.1
+  v1.28: v1.28.4
 crio_version: "{{ crio_supported_versions[kube_major_version] }}"
 
-yq_version: "v4.35.1"
+# Scheduler plugins doesn't build for K8s 1.29 yet
+scheduler_plugins_supported_versions:
+  v1.29: 0
+  v1.28: v0.28.9
+scheduler_plugins_version: "{{ scheduler_plugins_supported_versions[kube_major_version] }}"
+
+yq_version: "v4.42.1"
+
+github_url: https://github.com
+dl_k8s_io_url: https://dl.k8s.io
+storage_googleapis_url: https://storage.googleapis.com
+get_helm_url: https://get.helm.sh
 
 # Download URLs
 kubelet_download_url: "https://dl.k8s.io/release/{{ kube_version }}/bin/linux/{{ image_arch }}/kubelet"
@@ -265,7 +277,7 @@ multus_image_repo: "{{ github_image_repo }}/k8snetworkplumbingwg/multus-cni"
 multus_image_tag: "{{ multus_version }}"
 
 kube_vip_image_repo: "{{ github_image_repo }}/kube-vip/kube-vip"
-kube_vip_image_tag: v0.5.12
+kube_vip_image_tag: v0.8.0
 nginx_image_repo: "{{ docker_image_repo }}/library/nginx"
 nginx_image_tag: 1.25.2-alpine
 haproxy_image_repo: "{{ docker_image_repo }}/library/haproxy"
@@ -335,9 +347,8 @@ csi_livenessprobe_image_repo: "{{ kube_image_repo }}/sig-storage/livenessprobe"
 csi_livenessprobe_image_tag: "v2.5.0"
 
 snapshot_controller_supported_versions:
-  v1.28: "v4.2.1"
-  v1.27: "v4.2.1"
-  v1.26: "v4.2.1"
+  v1.29: "v7.0.2"
+  v1.28: "v7.0.2"
 snapshot_controller_image_repo: "{{ kube_image_repo }}/sig-storage/snapshot-controller"
 snapshot_controller_image_tag: "{{ snapshot_controller_supported_versions[kube_major_version] }}"
 
